@@ -12,6 +12,11 @@ class PagesDeploymentController {
         document.getElementById('tokenField').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') this.authenticate();
         });
+        
+        window.addEventListener('beforeunload', () => {
+            this.apiToken = null;
+            this.userLogin = null;
+        });
     }
 
     async authenticate() {
@@ -46,7 +51,7 @@ class PagesDeploymentController {
         const response = await fetch(`${this.baseApiUrl}${endpoint}`, {
             ...options,
             headers: {
-                'Authorization': `token ${this.apiToken}`,
+                'Authorization': `Bearer ${this.apiToken}`,
                 'Accept': 'application/vnd.github.v3+json',
                 ...options.headers
             }

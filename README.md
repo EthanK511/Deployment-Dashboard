@@ -53,7 +53,7 @@ A streamlined dashboard for managing all your GitHub Pages deployments from one 
 ## Technical Details
 
 - **Pure Frontend**: No backend required, runs entirely in the browser
-- **GitHub API v3**: Uses REST API for all operations
+- **GitHub REST API**: Uses REST API with v3 compatibility mode for all operations
 - **Responsive Design**: Works on desktop and mobile devices
 - **No Dependencies**: Built with vanilla HTML, CSS, and JavaScript
 
