@@ -26,15 +26,41 @@
         <main class="deployment-grid" id="deploymentGrid">
             <div class="initial-message">
                 <p>🔐 Please authenticate with your GitHub token to view deployments</p>
-                <p class="help-text">Token needs: <code>repo</code> and <code>pages</code> permissions</p>
-                <p>To generate a token, follow the instructions below</p>
-                <p>1. Navigate via GitHub to github.com/settings/personal-access-tokens</p>
-                <p>2. Click "Generate New Token"</p>
-                <p>3. Name the token something like "Deployment Dashboard"</p>
-                <p>4. Select All Repositories under Repository Access</p>
-                <p>5. Click Add Permissions under the permissions tab</p>
-                <p>6. Select Deployments and Pages and make sure they are set to read and write</p>
-                <p>7. Press save or update and copy the code to the field above</p>
+                <p class="help-text"><strong>Token Type:</strong> Use either a Fine-grained or Classic Personal Access Token</p>
+                
+                <div style="text-align: left; max-width: 600px; margin: 20px auto;">
+                    <h3 style="color: #58a6ff; margin-bottom: 10px;">Quick Setup Guide:</h3>
+                    
+                    <p><strong>Option 1: Fine-Grained Token (Recommended)</strong></p>
+                    <ol style="text-align: left; padding-left: 20px;">
+                        <li>Go to <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" style="color: #58a6ff;">github.com/settings/personal-access-tokens/new</a></li>
+                        <li>Click "Generate new token"</li>
+                        <li>Name it "Deployment Dashboard"</li>
+                        <li>Set <strong>Repository Access</strong> to "All repositories"</li>
+                        <li>Under <strong>Repository Permissions</strong>, set:
+                            <ul style="margin-top: 5px; padding-left: 20px;">
+                                <li><strong>Administration:</strong> Read and write</li>
+                                <li><strong>Contents:</strong> Read and write</li>
+                                <li><strong>Metadata:</strong> Read-only (auto-selected)</li>
+                                <li><strong>Pages:</strong> Read and write <span style="color: #f85149;">← CRITICAL!</span></li>
+                            </ul>
+                        </li>
+                        <li>Generate and copy the token</li>
+                    </ol>
+                    
+                    <p style="margin-top: 20px;"><strong>Option 2: Classic Token</strong></p>
+                    <ol style="text-align: left; padding-left: 20px;">
+                        <li>Go to <a href="https://github.com/settings/tokens" target="_blank" style="color: #58a6ff;">github.com/settings/tokens</a></li>
+                        <li>Click "Generate new token (classic)"</li>
+                        <li>Name it "Deployment Dashboard"</li>
+                        <li>Select scope: <strong><code>repo</code></strong> (Full control of private repositories)</li>
+                        <li>Generate and copy the token</li>
+                    </ol>
+                    
+                    <p style="margin-top: 20px; padding: 10px; background: #21262d; border-left: 3px solid #f85149;">
+                        <strong>⚠️ Common Issue:</strong> If you get a 403 error when enabling Pages, ensure your token has the <strong>Pages</strong> permission (fine-grained) or <strong>repo</strong> scope (classic).
+                    </p>
+                </div>
             </div>
         </main>
     </div>
