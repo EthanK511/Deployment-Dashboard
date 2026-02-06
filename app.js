@@ -271,16 +271,26 @@ class PagesDeploymentController {
         try {
             // Get selected configuration
             const buildMethod = document.getElementById(`build-method-${repo.id}`).value;
-            const branch = document.getElementById(`branch-${repo.id}`).value;
-            const path = document.getElementById(`path-${repo.id}`).value;
 
-            const requestBody = {
-                source: buildMethod === 'workflow' ? null : {
-                    branch: branch,
-                    path: path
-                },
-                build_type: buildMethod
-            };
+            let requestBody;
+            if (buildMethod === 'workflow') {
+                // For GitHub Actions, only set build_type
+                requestBody = {
+                    build_type: 'workflow'
+                };
+            } else {
+                // For deploy from branch, include source configuration
+                const branch = document.getElementById(`branch-${repo.id}`).value;
+                const path = document.getElementById(`path-${repo.id}`).value;
+                
+                requestBody = {
+                    source: {
+                        branch: branch,
+                        path: path
+                    },
+                    build_type: 'legacy'
+                };
+            }
 
             await this.makeApiCall(`/repos/${repo.owner.login}/${repo.name}/pages`, {
                 method: 'POST',
