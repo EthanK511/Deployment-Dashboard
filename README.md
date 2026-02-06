@@ -20,8 +20,7 @@ A streamlined dashboard for managing all your GitHub Pages deployments from one 
    - Or serve it with any web server (e.g., `python -m http.server`)
 
 3. **Authenticate**
-   - Create a GitHub Personal Access Token at: https://github.com/settings/tokens
-   - Required permissions: `repo` and `pages` (or `public_repo` for public repos only)
+   - Create a GitHub Personal Access Token (see detailed instructions below)
    - Enter your token in the dashboard and click "Connect"
 
 4. **Manage Your Deployments**
@@ -34,13 +33,60 @@ A streamlined dashboard for managing all your GitHub Pages deployments from one 
 
 ### Creating a Personal Access Token
 
-1. Go to GitHub Settings → Developer settings → Personal access tokens → Tokens (classic)
+You have two options for creating a GitHub token: **Fine-grained tokens** (recommended) or **Classic tokens**. Choose one of the options below.
+
+#### Option 1: Fine-Grained Personal Access Token (Recommended)
+
+Fine-grained tokens provide more granular control over permissions and are more secure.
+
+1. Go to GitHub Settings → Developer settings → Personal access tokens → [Fine-grained tokens](https://github.com/settings/personal-access-tokens/new)
+2. Click "Generate new token"
+3. Configure the token:
+   - **Token name**: Give it a descriptive name like "Pages Dashboard"
+   - **Expiration**: Choose your preferred expiration (90 days recommended)
+   - **Repository access**: Select "All repositories" or choose specific repositories
+4. Under **Permissions**, expand "Repository permissions" and set:
+   - **Actions**: Read and write (for workflow management)
+   - **Administration**: Read and write (required for enabling/disabling Pages)
+   - **Contents**: Read and write (access to code and branches)
+   - **Metadata**: Read-only (automatically selected, required)
+   - **Pages**: Read and write (**CRITICAL** - required to enable/disable Pages)
+5. Click "Generate token" and copy it immediately (you won't see it again!)
+
+**Required Fine-Grained Permissions Summary:**
+- ✅ **Administration** (Read and write) - Manage repository settings
+- ✅ **Contents** (Read and write) - Access code, branches, and commits
+- ✅ **Metadata** (Read-only) - Required for basic repository data
+- ✅ **Pages** (Read and write) - **CRITICAL** for enabling/disabling Pages
+
+**Optional but helpful:**
+- **Actions** (Read and write) - If managing GitHub Actions
+- **Deployments** (Read and write) - For deployment status
+
+#### Option 2: Classic Personal Access Token
+
+Classic tokens have broader permissions but are simpler to configure.
+
+1. Go to GitHub Settings → Developer settings → Personal access tokens → [Tokens (classic)](https://github.com/settings/tokens)
 2. Click "Generate new token (classic)"
-3. Give it a descriptive name like "Pages Dashboard"
-4. Select scopes:
-   - `repo` (Full control of private repositories)
-   - `pages` (Read and write GitHub Pages)
-5. Generate and copy the token
+3. Configure the token:
+   - **Note**: Give it a descriptive name like "Pages Dashboard"
+   - **Expiration**: Choose your preferred expiration
+4. Select the following scopes:
+   - ✅ **`repo`** (Full control of private repositories) - **REQUIRED**
+     - This includes: `repo:status`, `repo_deployment`, `public_repo`, `repo:invite`, `security_events`
+   - ✅ **`workflow`** (Update GitHub Action workflows) - Optional, for Actions management
+5. Click "Generate token" and copy it immediately
+
+**Required Classic Token Scopes Summary:**
+- ✅ **`repo`** - Full control of repositories (**CRITICAL** - includes Pages access)
+
+**Note on Classic Tokens:** The `repo` scope provides access to manage GitHub Pages. There is no separate `pages` scope in classic tokens - Pages management is included in the `repo` scope.
+
+**Common Issue:** If you see a 403 error when enabling Pages, ensure:
+- For fine-grained tokens: You have **Pages** permission set to "Read and write"
+- For classic tokens: You have the **`repo`** scope selected
+- The token has access to the specific repository (check Repository access settings)
 
 ### Dashboard Interface
 
@@ -73,14 +119,25 @@ A streamlined dashboard for managing all your GitHub Pages deployments from one 
 ## Troubleshooting
 
 **Authentication Failed**
-- Verify your token has correct permissions
+- Verify your token has correct permissions (see token creation guide above)
+- For fine-grained tokens: Ensure Pages permission is set to "Read and write"
+- For classic tokens: Ensure `repo` scope is selected
 - Check if the token hasn't expired
 - Ensure you copied the entire token
 
+**403 Error: "Failed to enable Pages"**
+- **Most common cause**: Missing or insufficient permissions
+- For fine-grained tokens: You MUST have **Pages** permission set to "Read and write"
+- For classic tokens: You MUST have the **`repo`** scope selected
+- Ensure the token has access to the specific repository
+- Verify you have admin access to the repository
+- Check that your token hasn't expired
+
 **Can't Enable Pages**
-- Repository must have at least one branch
+- Repository must have at least one branch with content
 - Check that Pages isn't already enabled
 - Verify you have admin permissions on the repository
+- Ensure your token has the required permissions (see 403 error above)
 
 **Loading Issues**
 - Check your internet connection
