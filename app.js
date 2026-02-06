@@ -107,6 +107,23 @@ class PagesDeploymentController {
         }
     }
 
+    async loadBranchesForRepo(repo) {
+        try {
+            const branches = await this.makeApiCall(`/repos/${repo.owner.login}/${repo.name}/branches`);
+            const branchSelect = document.getElementById(`branch-${repo.id}`);
+            
+            if (branchSelect && branches.length > 0) {
+                branchSelect.innerHTML = branches.map(branch => 
+                    `<option value="${branch.name}" ${branch.name === repo.default_branch ? 'selected' : ''}>
+                        ${branch.name}
+                    </option>`
+                ).join('');
+            }
+        } catch (error) {
+            console.log(`Could not load branches for ${repo.name}:`, error);
+        }
+    }
+
     renderDeployments(repositories) {
         const gridElement = document.getElementById('deploymentGrid');
         
@@ -120,9 +137,25 @@ class PagesDeploymentController {
         repositories.forEach(repo => {
             if (!repo.hasPagesEnabled) {
                 const enableBtn = document.getElementById(`enable-${repo.id}`);
+                const buildMethodSelect = document.getElementById(`build-method-${repo.id}`);
+                const branchConfig = document.getElementById(`branch-config-${repo.id}`);
+                const pathConfig = document.getElementById(`path-config-${repo.id}`);
+                
                 if (enableBtn) {
                     enableBtn.addEventListener('click', () => this.enablePages(repo));
                 }
+                
+                // Handle build method changes
+                if (buildMethodSelect) {
+                    buildMethodSelect.addEventListener('change', (e) => {
+                        const isWorkflow = e.target.value === 'workflow';
+                        if (branchConfig) branchConfig.style.display = isWorkflow ? 'none' : 'block';
+                        if (pathConfig) pathConfig.style.display = isWorkflow ? 'none' : 'block';
+                    });
+                }
+                
+                // Load branches for the repository
+                this.loadBranchesForRepo(repo);
             } else {
                 const disableBtn = document.getElementById(`disable-${repo.id}`);
                 const viewBtn = document.getElementById(`view-${repo.id}`);
@@ -144,6 +177,10 @@ class PagesDeploymentController {
         let pagesUrlHtml = '';
         let sourceInfoHtml = '';
         let actionButtonsHtml = '';
+        let configurationHtml = '';
+
+        // Repository link - always shown
+        const repoLinkHtml = `<a href="${repo.html_url}" target="_blank" class="repo-link">📂 View Repository</a>`;
 
         if (repo.hasPagesEnabled && repo.pagesInfo) {
             pagesUrlHtml = `<a href="${repo.pagesInfo.html_url}" target="_blank" class="pages-url">${repo.pagesInfo.html_url}</a>`;
@@ -161,6 +198,38 @@ class PagesDeploymentController {
                 <button id="disable-${repo.id}" class="action-btn disable-btn">❌ Disable Pages</button>
             `;
         } else {
+            // Configuration section for enabling Pages
+            configurationHtml = `
+                <div class="config-section">
+                    <h4 class="config-title">⚙️ Deployment Settings</h4>
+                    
+                    <div class="config-group">
+                        <label for="build-method-${repo.id}" class="config-label">Build Method:</label>
+                        <select id="build-method-${repo.id}" class="config-select">
+                            <option value="workflow">GitHub Actions</option>
+                            <option value="legacy" selected>Deploy from branch</option>
+                        </select>
+                        <div class="config-hint">GitHub Actions allows custom build workflows</div>
+                    </div>
+                    
+                    <div id="branch-config-${repo.id}" class="config-group">
+                        <label for="branch-${repo.id}" class="config-label">Source Branch:</label>
+                        <select id="branch-${repo.id}" class="config-select">
+                            <option value="${repo.default_branch || 'main'}" selected>${repo.default_branch || 'main'}</option>
+                        </select>
+                    </div>
+                    
+                    <div id="path-config-${repo.id}" class="config-group">
+                        <label for="path-${repo.id}" class="config-label">Source Path:</label>
+                        <select id="path-${repo.id}" class="config-select">
+                            <option value="/" selected>/ (root)</option>
+                            <option value="/docs">/docs</option>
+                        </select>
+                        <div class="config-hint">Choose where your site files are located</div>
+                    </div>
+                </div>
+            `;
+            
             actionButtonsHtml = `
                 <button id="enable-${repo.id}" class="action-btn enable-btn">✅ Enable Pages</button>
             `;
@@ -181,8 +250,10 @@ class PagesDeploymentController {
                     <span>Pages: ${statusText}</span>
                 </div>
                 
+                ${repoLinkHtml}
                 ${pagesUrlHtml}
                 ${sourceInfoHtml}
+                ${configurationHtml}
                 
                 <div class="repo-actions">
                     ${actionButtonsHtml}
@@ -198,17 +269,25 @@ class PagesDeploymentController {
         button.textContent = '⏳ Enabling...';
 
         try {
+            // Get selected configuration
+            const buildMethod = document.getElementById(`build-method-${repo.id}`).value;
+            const branch = document.getElementById(`branch-${repo.id}`).value;
+            const path = document.getElementById(`path-${repo.id}`).value;
+
+            const requestBody = {
+                source: buildMethod === 'workflow' ? null : {
+                    branch: branch,
+                    path: path
+                },
+                build_type: buildMethod
+            };
+
             await this.makeApiCall(`/repos/${repo.owner.login}/${repo.name}/pages`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                    source: {
-                        branch: repo.default_branch || 'main',
-                        path: '/'
-                    }
-                })
+                body: JSON.stringify(requestBody)
             });
 
             this.showStatus(`Pages enabled for ${repo.name}`, 'success');
