@@ -256,8 +256,8 @@ class PagesDeploymentController {
             
             actionButtonsHtml = `
                 <div class="bottom-actions">
-                    <button id="view-${repo.id}" class="action-btn view-btn">Visit Site</button>
-                    <button id="disable-${repo.id}" class="action-btn disable-btn">Disable Pages</button>
+                    <button id="view-${repo.id}" class="action-btn view-btn">🔗 Visit Site</button>
+                    <button id="disable-${repo.id}" class="action-btn disable-btn">❌ Disable Pages</button>
                 </div>
             `;
         } else {
