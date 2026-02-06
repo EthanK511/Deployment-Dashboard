@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pages Deployment Control Center</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="control-center">
+        <header class="header-panel">
+            <h1 class="main-title">GitHub Pages Control Center</h1>
+            <div class="auth-container">
+                <input type="password" 
+                       id="tokenField" 
+                       class="token-input" 
+                       placeholder="Enter your Personal Access Token"
+                       autocomplete="off">
+                <button id="connectBtn" class="connect-button">Connect</button>
+                <button id="refreshBtn" class="refresh-button" style="display:none;">Refresh Data</button>
+            </div>
+        </header>
+
+        <div id="statusBar" class="status-bar"></div>
+
+        <main class="deployment-grid" id="deploymentGrid">
+            <div class="initial-message">
+                <p>🔐 Please authenticate with your GitHub token to view deployments</p>
+                <p class="help-text">Token needs: <code>repo</code> and <code>pages</code> permissions</p>
+                <p>To generate a token, follow the instructions below</p>
+                <p>1. Navigate via GitHub to github.com/settings/personal-access-tokens</p>
+                <p>2. Click "Generate New Token"</p>
+                <p>3. Name the token something like "Deployment Dashboard"</p>
+                <p>4. Select All Repositories under Repository Access</p>
+                <p>5. Click Add Permissions under the permissions tab</p>
+                <p>6. Select Deployments and Pages and make sure they are set to read and write</p>
+                <p>7. Press save or update and copy the code to the field above</p>
+            </div>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
