@@ -3,12 +3,15 @@ class PagesDeploymentController {
         this.apiToken = null;
         this.userLogin = null;
         this.baseApiUrl = 'https://api.github.com';
+        this.storageKey = 'github_pages_token';
         this.initializeEventHandlers();
+        this.checkForSavedToken();
     }
 
     initializeEventHandlers() {
         document.getElementById('connectBtn').addEventListener('click', () => this.authenticate());
         document.getElementById('refreshBtn').addEventListener('click', () => this.loadAllDeployments());
+        document.getElementById('clearTokenBtn').addEventListener('click', () => this.clearSavedToken());
         document.getElementById('tokenField').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') this.authenticate();
         });
@@ -17,6 +20,42 @@ class PagesDeploymentController {
             this.apiToken = null;
             this.userLogin = null;
         });
+    }
+
+    checkForSavedToken() {
+        try {
+            const savedToken = localStorage.getItem(this.storageKey);
+            if (savedToken) {
+                document.getElementById('tokenField').value = savedToken;
+                document.getElementById('rememberToken').checked = true;
+                this.showStatus('Saved token found. Click Connect to authenticate.', 'success');
+            }
+        } catch (error) {
+            console.log('Could not access localStorage:', error);
+        }
+    }
+
+    saveToken(token) {
+        const rememberCheckbox = document.getElementById('rememberToken');
+        if (rememberCheckbox.checked) {
+            try {
+                localStorage.setItem(this.storageKey, token);
+            } catch (error) {
+                console.log('Could not save token to localStorage:', error);
+            }
+        }
+    }
+
+    clearSavedToken() {
+        if (confirm('Are you sure you want to clear the saved token? You will need to re-enter it next time.')) {
+            try {
+                localStorage.removeItem(this.storageKey);
+                document.getElementById('rememberToken').checked = false;
+                this.showStatus('Saved token cleared', 'success');
+            } catch (error) {
+                console.log('Could not clear token from localStorage:', error);
+            }
+        }
     }
 
     async authenticate() {
@@ -35,9 +74,14 @@ class PagesDeploymentController {
             const userData = await this.makeApiCall('/user');
             this.userLogin = userData.login;
             
+            // Save token if remember checkbox is checked
+            this.saveToken(token);
+            
             tokenInput.style.display = 'none';
             document.getElementById('connectBtn').style.display = 'none';
+            document.getElementById('rememberToken').parentElement.style.display = 'none';
             document.getElementById('refreshBtn').style.display = 'block';
+            document.getElementById('clearTokenBtn').style.display = 'block';
             
             this.showStatus(`Connected as ${this.userLogin}`, 'success');
             await this.loadAllDeployments();
@@ -265,12 +309,23 @@ class PagesDeploymentController {
     async enablePages(repo) {
         const btnId = `enable-${repo.id}`;
         const button = document.getElementById(btnId);
+        
+        if (!button) {
+            console.error('Enable button not found');
+            return;
+        }
+        
         button.disabled = true;
         button.textContent = '⏳ Enabling...';
 
         try {
             // Get selected configuration
-            const buildMethod = document.getElementById(`build-method-${repo.id}`).value;
+            const buildMethodElement = document.getElementById(`build-method-${repo.id}`);
+            if (!buildMethodElement) {
+                throw new Error('Build method selector not found');
+            }
+            
+            const buildMethod = buildMethodElement.value;
 
             let requestBody;
             if (buildMethod === 'workflow') {
@@ -280,8 +335,15 @@ class PagesDeploymentController {
                 };
             } else {
                 // For deploy from branch, include source configuration
-                const branch = document.getElementById(`branch-${repo.id}`).value;
-                const path = document.getElementById(`path-${repo.id}`).value;
+                const branchElement = document.getElementById(`branch-${repo.id}`);
+                const pathElement = document.getElementById(`path-${repo.id}`);
+                
+                if (!branchElement || !pathElement) {
+                    throw new Error('Branch or path selector not found');
+                }
+                
+                const branch = branchElement.value;
+                const path = pathElement.value;
                 
                 requestBody = {
                     source: {

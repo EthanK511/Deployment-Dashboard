@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pages Deployment Control Center</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -16,8 +17,13 @@
                        class="token-input" 
                        placeholder="Enter your Personal Access Token"
                        autocomplete="off">
+                <div class="remember-container">
+                    <input type="checkbox" id="rememberToken" class="remember-checkbox">
+                    <label for="rememberToken" class="remember-label">Remember token (stored in browser)</label>
+                </div>
                 <button id="connectBtn" class="connect-button">Connect</button>
                 <button id="refreshBtn" class="refresh-button" style="display:none;">Refresh Data</button>
+                <button id="clearTokenBtn" class="clear-token-button" style="display:none;">Clear Saved Token</button>
             </div>
         </header>
 

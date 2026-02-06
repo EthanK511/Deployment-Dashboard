@@ -39,6 +39,32 @@ body {
     display: flex;
     gap: 12px;
     flex-wrap: wrap;
+    align-items: center;
+}
+
+.remember-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+}
+
+.remember-checkbox {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #00d4ff;
+}
+
+.remember-label {
+    font-size: 13px;
+    color: #999;
+    cursor: pointer;
+    user-select: none;
+}
+
+.remember-label:hover {
+    color: #00d4ff;
 }
 
 .token-input {
@@ -60,7 +86,8 @@ body {
 }
 
 .connect-button,
-.refresh-button {
+.refresh-button,
+.clear-token-button {
     padding: 12px 28px;
     background: linear-gradient(135deg, #00d4ff, #0099ff);
     border: none;
@@ -72,13 +99,18 @@ body {
 }
 
 .connect-button:hover,
-.refresh-button:hover {
+.refresh-button:hover,
+.clear-token-button:hover {
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(0, 212, 255, 0.4);
 }
 
 .refresh-button {
     background: linear-gradient(135deg, #00ff88, #00cc6a);
+}
+
+.clear-token-button {
+    background: linear-gradient(135deg, #ff6b6b, #cc5555);
 }
 
 .status-bar {
