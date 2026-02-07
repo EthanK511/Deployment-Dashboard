@@ -80,8 +80,12 @@ class PagesDeploymentController {
             tokenInput.style.display = 'none';
             document.getElementById('connectBtn').style.display = 'none';
             document.getElementById('rememberToken').parentElement.style.display = 'none';
-            document.getElementById('refreshBtn').style.display = 'block';
-            document.getElementById('clearTokenBtn').style.display = 'block';
+            document.getElementById('buttonGroup').style.display = 'flex';
+            
+            // Update user info in header
+            const userInfoElement = document.getElementById('userInfo');
+            userInfoElement.textContent = `@${this.userLogin}`;
+            userInfoElement.style.display = 'block';
             
             this.showStatus(`Connected as ${this.userLogin}`, 'success');
             await this.loadAllDeployments();
@@ -135,7 +139,15 @@ class PagesDeploymentController {
             );
 
             this.renderDeployments(repoWithPagesData);
-            this.showStatus(`Displaying ${allRepos.length} repositories`, 'success');
+            
+            // Update repository count in header
+            const repoCountElement = document.getElementById('repoCount');
+            repoCountElement.textContent = `${allRepos.length} repositories`;
+            repoCountElement.style.display = 'block';
+            
+            // Clear status bar
+            const statusBar = document.getElementById('statusBar');
+            statusBar.className = 'status-bar';
         } catch (error) {
             this.showStatus(`Error loading data: ${error.message}`, 'error');
             gridElement.innerHTML = '<div class="initial-message"><p>❌ Failed to load repositories</p></div>';
@@ -202,106 +214,166 @@ class PagesDeploymentController {
                 this.loadBranchesForRepo(repo);
             } else {
                 const disableBtn = document.getElementById(`disable-${repo.id}`);
-                const viewBtn = document.getElementById(`view-${repo.id}`);
+                const updateBtn = document.getElementById(`update-${repo.id}`);
+                const buildMethodSelect = document.getElementById(`build-method-${repo.id}`);
+                const branchConfig = document.getElementById(`branch-config-${repo.id}`);
+                const pathConfig = document.getElementById(`path-config-${repo.id}`);
                 
                 if (disableBtn) {
                     disableBtn.addEventListener('click', () => this.disablePages(repo));
                 }
-                if (viewBtn && repo.pagesInfo) {
-                    viewBtn.addEventListener('click', () => window.open(repo.pagesInfo.html_url, '_blank'));
+                
+                if (updateBtn) {
+                    updateBtn.addEventListener('click', () => this.updatePages(repo));
                 }
+                
+                // Handle build method changes
+                if (buildMethodSelect) {
+                    buildMethodSelect.addEventListener('change', (e) => {
+                        const isWorkflow = e.target.value === 'workflow';
+                        if (branchConfig) branchConfig.style.display = isWorkflow ? 'none' : 'block';
+                        if (pathConfig) pathConfig.style.display = isWorkflow ? 'none' : 'block';
+                    });
+                }
+                
+                // Load branches for the repository
+                this.loadBranchesForRepo(repo);
             }
         });
     }
 
     createRepoCard(repo) {
         const statusClass = repo.hasPagesEnabled ? 'active' : 'inactive';
-        const statusText = repo.hasPagesEnabled ? 'Active' : 'Not Configured';
         
-        let pagesUrlHtml = '';
-        let sourceInfoHtml = '';
+        let linksRowHtml = '';
         let actionButtonsHtml = '';
         let configurationHtml = '';
 
-        // Repository link - always shown
-        const repoLinkHtml = `<a href="${repo.html_url}" target="_blank" class="repo-link">📂 View Repository</a>`;
-
         if (repo.hasPagesEnabled && repo.pagesInfo) {
-            pagesUrlHtml = `<a href="${repo.pagesInfo.html_url}" target="_blank" class="pages-url">${repo.pagesInfo.html_url}</a>`;
+            // Active/deployed card layout
+            const sourceInfo = repo.pagesInfo.source 
+                ? `${repo.pagesInfo.source.branch} / ${repo.pagesInfo.source.path || '/'}` 
+                : 'N/A';
             
-            if (repo.pagesInfo.source) {
-                sourceInfoHtml = `
-                    <div class="source-info">
-                        <strong>Source:</strong> ${repo.pagesInfo.source.branch} / ${repo.pagesInfo.source.path || '/'}
-                    </div>
-                `;
-            }
+            const currentBranch = repo.pagesInfo.source?.branch || repo.default_branch || 'main';
+            const currentPath = repo.pagesInfo.source?.path || '/';
+            const buildType = repo.pagesInfo.build_type || 'legacy';
             
-            actionButtonsHtml = `
-                <button id="view-${repo.id}" class="action-btn view-btn">🔗 Visit Site</button>
-                <button id="disable-${repo.id}" class="action-btn disable-btn">❌ Disable Pages</button>
-            `;
-        } else {
-            // Configuration section for enabling Pages
-            configurationHtml = `
-                <div class="config-section">
-                    <h4 class="config-title">⚙️ Deployment Settings</h4>
-                    
-                    <div class="config-group">
-                        <label for="build-method-${repo.id}" class="config-label">Build Method:</label>
-                        <select id="build-method-${repo.id}" class="config-select">
-                            <option value="workflow">GitHub Actions</option>
-                            <option value="legacy" selected>Deploy from branch</option>
-                        </select>
-                        <div class="config-hint">GitHub Actions allows custom build workflows</div>
-                    </div>
-                    
-                    <div id="branch-config-${repo.id}" class="config-group">
-                        <label for="branch-${repo.id}" class="config-label">Source Branch:</label>
-                        <select id="branch-${repo.id}" class="config-select">
-                            <option value="${repo.default_branch || 'main'}" selected>${repo.default_branch || 'main'}</option>
-                        </select>
-                    </div>
-                    
-                    <div id="path-config-${repo.id}" class="config-group">
-                        <label for="path-${repo.id}" class="config-label">Source Path:</label>
-                        <select id="path-${repo.id}" class="config-select">
-                            <option value="/" selected>/ (root)</option>
-                            <option value="/docs">/docs</option>
-                        </select>
-                        <div class="config-hint">Choose where your site files are located</div>
+            linksRowHtml = `
+                <div class="links-row">
+                    <a href="${repo.html_url}" target="_blank" class="link-card">
+                        <span>📂</span>
+                        <span>Repo</span>
+                    </a>
+                    <a href="${repo.pagesInfo.html_url}" target="_blank" class="link-card">
+                        <span>🔗</span>
+                        <span>Link</span>
+                    </a>
+                    <div class="link-card source-card">
+                        <span>📋</span>
+                        <span>Source: ${sourceInfo}</span>
                     </div>
                 </div>
             `;
             
+            // Page Settings dropdown with full deployment settings and disable button
             actionButtonsHtml = `
-                <button id="enable-${repo.id}" class="action-btn enable-btn">✅ Enable Pages</button>
+                <details class="config-dropdown">
+                    <summary class="config-dropdown-title">⚙️ Page Settings</summary>
+                    <div class="config-dropdown-content">
+                        <div class="config-group">
+                            <label for="build-method-${repo.id}" class="config-label">Build Method:</label>
+                            <select id="build-method-${repo.id}" class="config-select">
+                                <option value="workflow" ${buildType === 'workflow' ? 'selected' : ''}>GitHub Actions</option>
+                                <option value="legacy" ${buildType === 'legacy' ? 'selected' : ''}>Deploy from branch</option>
+                            </select>
+                            <div class="config-hint">GitHub Actions allows custom build workflows</div>
+                        </div>
+                        
+                        <div id="branch-config-${repo.id}" class="config-group" style="display: ${buildType === 'workflow' ? 'none' : 'block'}">
+                            <label for="branch-${repo.id}" class="config-label">Source Branch:</label>
+                            <select id="branch-${repo.id}" class="config-select">
+                                <option value="${currentBranch}" selected>${currentBranch}</option>
+                            </select>
+                        </div>
+                        
+                        <div id="path-config-${repo.id}" class="config-group" style="display: ${buildType === 'workflow' ? 'none' : 'block'}">
+                            <label for="path-${repo.id}" class="config-label">Source Path:</label>
+                            <select id="path-${repo.id}" class="config-select">
+                                <option value="/" ${currentPath === '/' ? 'selected' : ''}>/ (root)</option>
+                                <option value="/docs" ${currentPath === '/docs' ? 'selected' : ''}>/docs</option>
+                            </select>
+                            <div class="config-hint">Choose where your site files are located</div>
+                        </div>
+                        
+                        <button id="update-${repo.id}" class="action-btn enable-btn full-width">💾 Update Settings</button>
+                        <button id="disable-${repo.id}" class="action-btn disable-btn full-width">❌ Disable Pages</button>
+                    </div>
+                </details>
             `;
+        } else {
+            // Undeployed card layout
+            linksRowHtml = `
+                <div class="links-row">
+                    <a href="${repo.html_url}" target="_blank" class="link-card">
+                        <span>📂</span>
+                        <span>Repo</span>
+                    </a>
+                </div>
+            `;
+            
+            // Configuration section as dropdown with Enable button inside
+            configurationHtml = `
+                <details class="config-dropdown">
+                    <summary class="config-dropdown-title">⚙️ Page Settings</summary>
+                    <div class="config-dropdown-content">
+                        <div class="config-group">
+                            <label for="build-method-${repo.id}" class="config-label">Build Method:</label>
+                            <select id="build-method-${repo.id}" class="config-select">
+                                <option value="workflow">GitHub Actions</option>
+                                <option value="legacy" selected>Deploy from branch</option>
+                            </select>
+                            <div class="config-hint">GitHub Actions allows custom build workflows</div>
+                        </div>
+                        
+                        <div id="branch-config-${repo.id}" class="config-group">
+                            <label for="branch-${repo.id}" class="config-label">Source Branch:</label>
+                            <select id="branch-${repo.id}" class="config-select">
+                                <option value="${repo.default_branch || 'main'}" selected>${repo.default_branch || 'main'}</option>
+                            </select>
+                        </div>
+                        
+                        <div id="path-config-${repo.id}" class="config-group">
+                            <label for="path-${repo.id}" class="config-label">Source Path:</label>
+                            <select id="path-${repo.id}" class="config-select">
+                                <option value="/" selected>/ (root)</option>
+                                <option value="/docs">/docs</option>
+                            </select>
+                            <div class="config-hint">Choose where your site files are located</div>
+                        </div>
+                        
+                        <button id="enable-${repo.id}" class="action-btn enable-btn full-width">✅ Enable Pages</button>
+                    </div>
+                </details>
+            `;
+            
+            actionButtonsHtml = '';
         }
 
         return `
             <div class="repo-card">
                 <div class="repo-header">
-                    <div>
-                        <div class="repo-name">${repo.name}</div>
-                        <div style="font-size: 12px; color: #999;">${repo.owner.login}</div>
+                    <div class="repo-name">${repo.name}</div>
+                    <div class="repo-header-right">
+                        <span class="status-label">Status:</span>
+                        <div class="status-indicator ${statusClass}"></div>
+                        <span class="repo-visibility">${repo.private ? '🔒 Private' : '🌐 Public'}</span>
                     </div>
-                    <span class="repo-visibility">${repo.private ? '🔒 Private' : '🌐 Public'}</span>
                 </div>
                 
-                <div class="pages-status">
-                    <div class="status-indicator ${statusClass}"></div>
-                    <span>Pages: ${statusText}</span>
-                </div>
-                
-                ${repoLinkHtml}
-                ${pagesUrlHtml}
-                ${sourceInfoHtml}
+                ${linksRowHtml}
                 ${configurationHtml}
-                
-                <div class="repo-actions">
-                    ${actionButtonsHtml}
-                </div>
+                ${actionButtonsHtml ? `<div class="repo-actions">${actionButtonsHtml}</div>` : ''}
             </div>
         `;
     }
@@ -392,6 +464,71 @@ class PagesDeploymentController {
             this.showStatus(`Failed to disable Pages for ${repo.name}: ${error.message}`, 'error');
             button.disabled = false;
             button.textContent = '❌ Disable Pages';
+        }
+    }
+
+    async updatePages(repo) {
+        const btnId = `update-${repo.id}`;
+        const button = document.getElementById(btnId);
+        
+        if (!button) {
+            console.error('Update button not found');
+            return;
+        }
+        
+        button.disabled = true;
+        button.textContent = '⏳ Updating...';
+
+        try {
+            // Get selected configuration
+            const buildMethodElement = document.getElementById(`build-method-${repo.id}`);
+            if (!buildMethodElement) {
+                throw new Error('Build method selector not found');
+            }
+            
+            const buildMethod = buildMethodElement.value;
+
+            let requestBody;
+            if (buildMethod === 'workflow') {
+                // For GitHub Actions, only set build_type
+                requestBody = {
+                    build_type: 'workflow'
+                };
+            } else {
+                // For deploy from branch, include source configuration
+                const branchElement = document.getElementById(`branch-${repo.id}`);
+                const pathElement = document.getElementById(`path-${repo.id}`);
+                
+                if (!branchElement || !pathElement) {
+                    throw new Error('Branch or path selector not found');
+                }
+                
+                const branch = branchElement.value;
+                const path = pathElement.value;
+                
+                requestBody = {
+                    source: {
+                        branch: branch,
+                        path: path
+                    },
+                    build_type: 'legacy'
+                };
+            }
+
+            await this.makeApiCall(`/repos/${repo.owner.login}/${repo.name}/pages`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestBody)
+            });
+
+            this.showStatus(`Pages settings updated for ${repo.name}`, 'success');
+            await this.loadAllDeployments();
+        } catch (error) {
+            this.showStatus(`Failed to update Pages settings for ${repo.name}: ${error.message}`, 'error');
+            button.disabled = false;
+            button.textContent = '💾 Update Settings';
         }
     }
 
