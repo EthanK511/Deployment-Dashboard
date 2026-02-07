@@ -214,10 +214,30 @@ class PagesDeploymentController {
                 this.loadBranchesForRepo(repo);
             } else {
                 const disableBtn = document.getElementById(`disable-${repo.id}`);
+                const updateBtn = document.getElementById(`update-${repo.id}`);
+                const buildMethodSelect = document.getElementById(`build-method-${repo.id}`);
+                const branchConfig = document.getElementById(`branch-config-${repo.id}`);
+                const pathConfig = document.getElementById(`path-config-${repo.id}`);
                 
                 if (disableBtn) {
                     disableBtn.addEventListener('click', () => this.disablePages(repo));
                 }
+                
+                if (updateBtn) {
+                    updateBtn.addEventListener('click', () => this.updatePages(repo));
+                }
+                
+                // Handle build method changes
+                if (buildMethodSelect) {
+                    buildMethodSelect.addEventListener('change', (e) => {
+                        const isWorkflow = e.target.value === 'workflow';
+                        if (branchConfig) branchConfig.style.display = isWorkflow ? 'none' : 'block';
+                        if (pathConfig) pathConfig.style.display = isWorkflow ? 'none' : 'block';
+                    });
+                }
+                
+                // Load branches for the repository
+                this.loadBranchesForRepo(repo);
             }
         });
     }
@@ -234,6 +254,10 @@ class PagesDeploymentController {
             const sourceInfo = repo.pagesInfo.source 
                 ? `${repo.pagesInfo.source.branch} / ${repo.pagesInfo.source.path || '/'}` 
                 : 'N/A';
+            
+            const currentBranch = repo.pagesInfo.source?.branch || repo.default_branch || 'main';
+            const currentPath = repo.pagesInfo.source?.path || '/';
+            const buildType = repo.pagesInfo.build_type || 'legacy';
             
             linksRowHtml = `
                 <div class="links-row">
@@ -252,11 +276,37 @@ class PagesDeploymentController {
                 </div>
             `;
             
-            // Disable Pages dropdown
+            // Page Settings dropdown with full deployment settings and disable button
             actionButtonsHtml = `
                 <details class="config-dropdown">
                     <summary class="config-dropdown-title">⚙️ Page Settings</summary>
                     <div class="config-dropdown-content">
+                        <div class="config-group">
+                            <label for="build-method-${repo.id}" class="config-label">Build Method:</label>
+                            <select id="build-method-${repo.id}" class="config-select">
+                                <option value="workflow" ${buildType === 'workflow' ? 'selected' : ''}>GitHub Actions</option>
+                                <option value="legacy" ${buildType === 'legacy' ? 'selected' : ''}>Deploy from branch</option>
+                            </select>
+                            <div class="config-hint">GitHub Actions allows custom build workflows</div>
+                        </div>
+                        
+                        <div id="branch-config-${repo.id}" class="config-group" style="display: ${buildType === 'workflow' ? 'none' : 'block'}">
+                            <label for="branch-${repo.id}" class="config-label">Source Branch:</label>
+                            <select id="branch-${repo.id}" class="config-select">
+                                <option value="${currentBranch}" selected>${currentBranch}</option>
+                            </select>
+                        </div>
+                        
+                        <div id="path-config-${repo.id}" class="config-group" style="display: ${buildType === 'workflow' ? 'none' : 'block'}">
+                            <label for="path-${repo.id}" class="config-label">Source Path:</label>
+                            <select id="path-${repo.id}" class="config-select">
+                                <option value="/" ${currentPath === '/' ? 'selected' : ''}>/ (root)</option>
+                                <option value="/docs" ${currentPath === '/docs' ? 'selected' : ''}>/docs</option>
+                            </select>
+                            <div class="config-hint">Choose where your site files are located</div>
+                        </div>
+                        
+                        <button id="update-${repo.id}" class="action-btn enable-btn full-width">💾 Update Settings</button>
                         <button id="disable-${repo.id}" class="action-btn disable-btn full-width">❌ Disable Pages</button>
                     </div>
                 </details>
@@ -275,7 +325,7 @@ class PagesDeploymentController {
             // Configuration section as dropdown with Enable button inside
             configurationHtml = `
                 <details class="config-dropdown">
-                    <summary class="config-dropdown-title">⚙️ Deployment Settings</summary>
+                    <summary class="config-dropdown-title">⚙️ Page Settings</summary>
                     <div class="config-dropdown-content">
                         <div class="config-group">
                             <label for="build-method-${repo.id}" class="config-label">Build Method:</label>
@@ -414,6 +464,71 @@ class PagesDeploymentController {
             this.showStatus(`Failed to disable Pages for ${repo.name}: ${error.message}`, 'error');
             button.disabled = false;
             button.textContent = '❌ Disable Pages';
+        }
+    }
+
+    async updatePages(repo) {
+        const btnId = `update-${repo.id}`;
+        const button = document.getElementById(btnId);
+        
+        if (!button) {
+            console.error('Update button not found');
+            return;
+        }
+        
+        button.disabled = true;
+        button.textContent = '⏳ Updating...';
+
+        try {
+            // Get selected configuration
+            const buildMethodElement = document.getElementById(`build-method-${repo.id}`);
+            if (!buildMethodElement) {
+                throw new Error('Build method selector not found');
+            }
+            
+            const buildMethod = buildMethodElement.value;
+
+            let requestBody;
+            if (buildMethod === 'workflow') {
+                // For GitHub Actions, only set build_type
+                requestBody = {
+                    build_type: 'workflow'
+                };
+            } else {
+                // For deploy from branch, include source configuration
+                const branchElement = document.getElementById(`branch-${repo.id}`);
+                const pathElement = document.getElementById(`path-${repo.id}`);
+                
+                if (!branchElement || !pathElement) {
+                    throw new Error('Branch or path selector not found');
+                }
+                
+                const branch = branchElement.value;
+                const path = pathElement.value;
+                
+                requestBody = {
+                    source: {
+                        branch: branch,
+                        path: path
+                    },
+                    build_type: 'legacy'
+                };
+            }
+
+            await this.makeApiCall(`/repos/${repo.owner.login}/${repo.name}/pages`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestBody)
+            });
+
+            this.showStatus(`Pages settings updated for ${repo.name}`, 'success');
+            await this.loadAllDeployments();
+        } catch (error) {
+            this.showStatus(`Failed to update Pages settings for ${repo.name}: ${error.message}`, 'error');
+            button.disabled = false;
+            button.textContent = '💾 Update Settings';
         }
     }
 
