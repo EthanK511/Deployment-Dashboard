@@ -145,7 +145,9 @@ class PagesDeploymentController {
             repoCountElement.textContent = `${allRepos.length} repositories`;
             repoCountElement.style.display = 'block';
             
-            this.showStatus(`Loaded successfully`, 'success');
+            // Clear status bar
+            const statusBar = document.getElementById('statusBar');
+            statusBar.className = 'status-bar';
         } catch (error) {
             this.showStatus(`Error loading data: ${error.message}`, 'error');
             gridElement.innerHTML = '<div class="initial-message"><p>❌ Failed to load repositories</p></div>';
@@ -212,13 +214,9 @@ class PagesDeploymentController {
                 this.loadBranchesForRepo(repo);
             } else {
                 const disableBtn = document.getElementById(`disable-${repo.id}`);
-                const viewBtn = document.getElementById(`view-${repo.id}`);
                 
                 if (disableBtn) {
                     disableBtn.addEventListener('click', () => this.disablePages(repo));
-                }
-                if (viewBtn && repo.pagesInfo) {
-                    viewBtn.addEventListener('click', () => window.open(repo.pagesInfo.html_url, '_blank'));
                 }
             }
         });
@@ -241,11 +239,11 @@ class PagesDeploymentController {
                 <div class="links-row">
                     <a href="${repo.html_url}" target="_blank" class="link-card">
                         <span>📂</span>
-                        <span>View Repository</span>
+                        <span>Repo</span>
                     </a>
                     <a href="${repo.pagesInfo.html_url}" target="_blank" class="link-card">
                         <span>🔗</span>
-                        <span>Deployment</span>
+                        <span>Link</span>
                     </a>
                     <div class="link-card source-card">
                         <span>📋</span>
@@ -254,11 +252,14 @@ class PagesDeploymentController {
                 </div>
             `;
             
+            // Disable Pages dropdown
             actionButtonsHtml = `
-                <div class="bottom-actions">
-                    <button id="view-${repo.id}" class="action-btn view-btn">🔗 Visit Site</button>
-                    <button id="disable-${repo.id}" class="action-btn disable-btn">❌ Disable Pages</button>
-                </div>
+                <details class="config-dropdown">
+                    <summary class="config-dropdown-title">⚙️ Page Settings</summary>
+                    <div class="config-dropdown-content">
+                        <button id="disable-${repo.id}" class="action-btn disable-btn full-width">❌ Disable Pages</button>
+                    </div>
+                </details>
             `;
         } else {
             // Undeployed card layout
@@ -266,12 +267,12 @@ class PagesDeploymentController {
                 <div class="links-row">
                     <a href="${repo.html_url}" target="_blank" class="link-card">
                         <span>📂</span>
-                        <span>View Repository</span>
+                        <span>Repo</span>
                     </a>
                 </div>
             `;
             
-            // Configuration section as dropdown
+            // Configuration section as dropdown with Enable button inside
             configurationHtml = `
                 <details class="config-dropdown">
                     <summary class="config-dropdown-title">⚙️ Deployment Settings</summary>
@@ -300,13 +301,13 @@ class PagesDeploymentController {
                             </select>
                             <div class="config-hint">Choose where your site files are located</div>
                         </div>
+                        
+                        <button id="enable-${repo.id}" class="action-btn enable-btn full-width">✅ Enable Pages</button>
                     </div>
                 </details>
             `;
             
-            actionButtonsHtml = `
-                <button id="enable-${repo.id}" class="action-btn enable-btn">✅ Enable Pages</button>
-            `;
+            actionButtonsHtml = '';
         }
 
         return `
@@ -314,6 +315,7 @@ class PagesDeploymentController {
                 <div class="repo-header">
                     <div class="repo-name">${repo.name}</div>
                     <div class="repo-header-right">
+                        <span class="status-label">Status:</span>
                         <div class="status-indicator ${statusClass}"></div>
                         <span class="repo-visibility">${repo.private ? '🔒 Private' : '🌐 Public'}</span>
                     </div>
@@ -321,10 +323,7 @@ class PagesDeploymentController {
                 
                 ${linksRowHtml}
                 ${configurationHtml}
-                
-                <div class="repo-actions">
-                    ${actionButtonsHtml}
-                </div>
+                ${actionButtonsHtml ? `<div class="repo-actions">${actionButtonsHtml}</div>` : ''}
             </div>
         `;
     }

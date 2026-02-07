@@ -4,9 +4,17 @@
     box-sizing: border-box;
 }
 
+:root {
+    --black: #000501;
+    --muted-teal: #73ab84;
+    --celadon: #99d19c;
+    --pearl-aqua: #79c7c5;
+    --frosted-blue: #ade1e5;
+}
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    background: linear-gradient(135deg, var(--black) 0%, #0a1a0f 100%);
     color: #e4e4e4;
     min-height: 100vh;
     padding: 20px;
@@ -41,7 +49,7 @@ body {
 }
 
 .header-user-info {
-    color: #00d4ff;
+    color: var(--pearl-aqua);
     font-weight: 600;
 }
 
@@ -52,7 +60,7 @@ body {
 .main-title {
     font-size: 2rem;
     margin: 0;
-    background: linear-gradient(90deg, #00d4ff, #00ff88);
+    background: linear-gradient(90deg, var(--pearl-aqua), var(--celadon));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -87,7 +95,7 @@ body {
     width: 18px;
     height: 18px;
     cursor: pointer;
-    accent-color: #00d4ff;
+    accent-color: var(--pearl-aqua);
 }
 
 .remember-label {
@@ -98,7 +106,7 @@ body {
 }
 
 .remember-label:hover {
-    color: #00d4ff;
+    color: var(--pearl-aqua);
 }
 
 .token-input {
@@ -115,7 +123,7 @@ body {
 
 .token-input:focus {
     outline: none;
-    border-color: #00d4ff;
+    border-color: var(--pearl-aqua);
     background: rgba(255, 255, 255, 0.12);
 }
 
@@ -123,7 +131,7 @@ body {
 .refresh-button,
 .clear-token-button {
     padding: 12px 28px;
-    background: linear-gradient(135deg, #00d4ff, #0099ff);
+    background: linear-gradient(135deg, var(--muted-teal), var(--celadon));
     border: none;
     border-radius: 8px;
     color: white;
@@ -136,15 +144,15 @@ body {
 .refresh-button:hover,
 .clear-token-button:hover {
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0, 212, 255, 0.4);
+    box-shadow: 0 5px 15px rgba(115, 171, 132, 0.4);
 }
 
 .refresh-button {
-    background: linear-gradient(135deg, #00ff88, #00cc6a);
+    background: linear-gradient(135deg, var(--celadon), var(--muted-teal));
 }
 
 .clear-token-button {
-    background: linear-gradient(135deg, #ff6b6b, #cc5555);
+    background: linear-gradient(135deg, #cc5555, #ff6b6b);
 }
 
 .status-bar {
@@ -153,7 +161,7 @@ body {
     padding: 15px 20px;
     margin-bottom: 20px;
     font-size: 14px;
-    border-left: 4px solid #00d4ff;
+    border-left: 4px solid var(--pearl-aqua);
     display: none;
 }
 
@@ -167,8 +175,8 @@ body {
 }
 
 .status-bar.success {
-    border-left-color: #00ff88;
-    background: rgba(0, 255, 136, 0.1);
+    border-left-color: var(--celadon);
+    background: rgba(153, 209, 156, 0.1);
 }
 
 .deployment-grid {
@@ -200,7 +208,7 @@ body {
     background: rgba(255, 255, 255, 0.1);
     padding: 2px 8px;
     border-radius: 4px;
-    color: #00d4ff;
+    color: var(--pearl-aqua);
 }
 
 .repo-card {
@@ -214,7 +222,7 @@ body {
 .repo-card:hover {
     transform: translateY(-4px);
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-    border-color: rgba(0, 212, 255, 0.3);
+    border-color: rgba(121, 199, 197, 0.3);
 }
 
 .repo-header {
@@ -227,13 +235,19 @@ body {
 .repo-name {
     font-size: 18px;
     font-weight: 600;
-    color: #00d4ff;
+    color: var(--pearl-aqua);
 }
 
 .repo-header-right {
     display: flex;
     align-items: center;
     gap: 8px;
+}
+
+.status-label {
+    font-size: 12px;
+    color: #999;
+    font-weight: 500;
 }
 
 .repo-visibility {
@@ -250,7 +264,7 @@ body {
 }
 
 .status-indicator.active {
-    background: #00ff88;
+    background: var(--celadon);
 }
 
 .status-indicator.inactive {
@@ -271,18 +285,18 @@ body {
     align-items: center;
     gap: 8px;
     padding: 10px 12px;
-    background: rgba(0, 212, 255, 0.1);
+    background: rgba(121, 199, 197, 0.1);
     border-radius: 6px;
-    border: 1px solid rgba(0, 212, 255, 0.3);
+    border: 1px solid rgba(121, 199, 197, 0.3);
     text-decoration: none;
-    color: #00d4ff;
+    color: var(--pearl-aqua);
     font-size: 13px;
     transition: all 0.2s;
 }
 
 .link-card:hover {
-    background: rgba(0, 212, 255, 0.2);
-    border-color: rgba(0, 212, 255, 0.5);
+    background: rgba(121, 199, 197, 0.2);
+    border-color: rgba(121, 199, 197, 0.5);
     transform: scale(1.02);
 }
 
@@ -329,8 +343,13 @@ body {
     transition: all 0.2s;
 }
 
+.action-btn.full-width {
+    width: 100%;
+    margin-top: 12px;
+}
+
 .enable-btn {
-    background: linear-gradient(135deg, #00ff88, #00cc6a);
+    background: linear-gradient(135deg, var(--celadon), var(--muted-teal));
     color: white;
 }
 
@@ -341,8 +360,8 @@ body {
 
 .view-btn {
     background: rgba(255, 255, 255, 0.1);
-    color: #00d4ff;
-    border: 1px solid rgba(0, 212, 255, 0.3);
+    color: var(--pearl-aqua);
+    border: 1px solid rgba(121, 199, 197, 0.3);
 }
 
 .action-btn:hover {
@@ -365,7 +384,7 @@ body {
     width: 50px;
     height: 50px;
     border: 4px solid rgba(255, 255, 255, 0.1);
-    border-top-color: #00d4ff;
+    border-top-color: var(--pearl-aqua);
     border-radius: 50%;
     animation: spin 1s linear infinite;
     margin: 0 auto 20px;
@@ -384,7 +403,7 @@ body {
 
 .config-dropdown-title {
     font-size: 14px;
-    color: #00d4ff;
+    color: var(--pearl-aqua);
     padding: 12px 15px;
     cursor: pointer;
     user-select: none;
@@ -410,7 +429,7 @@ body {
 }
 
 .config-dropdown-title:hover {
-    color: #00ff88;
+    color: var(--celadon);
 }
 
 .config-dropdown-content {
@@ -446,13 +465,13 @@ body {
 }
 
 .config-select:hover {
-    border-color: rgba(0, 212, 255, 0.3);
+    border-color: rgba(121, 199, 197, 0.3);
     background: rgba(255, 255, 255, 0.12);
 }
 
 .config-select:focus {
     outline: none;
-    border-color: #00d4ff;
+    border-color: var(--pearl-aqua);
     background: rgba(255, 255, 255, 0.12);
 }
 
