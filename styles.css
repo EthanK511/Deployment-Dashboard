@@ -152,7 +152,7 @@ body {
 }
 
 .clear-token-button {
-    background: linear-gradient(135deg, #cc5555, #ff6b6b);
+    background: linear-gradient(135deg, #ff6b6b, #cc5555);
 }
 
 .status-bar {
