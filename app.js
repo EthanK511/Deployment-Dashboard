@@ -337,7 +337,7 @@ class PagesDeploymentController {
                         </div>
                         
                         <div id="branch-config-${repo.id}" class="config-group">
-                            <label for="branch-${repo.id}" class="config-label">Source Branch:</label>
+                            <label for="branch-${repo.id}" class="config-label">Branch</label>
                             <select id="branch-${repo.id}" class="config-select">
                                 <option value="${repo.default_branch || 'main'}" selected>${repo.default_branch || 'main'}</option>
                             </select>
