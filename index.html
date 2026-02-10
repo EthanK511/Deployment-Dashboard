@@ -10,7 +10,13 @@
 <body>
     <div class="control-center">
         <header class="header-panel">
-            <h1 class="main-title">GitHub Pages Control Center</h1>
+            <div class="header-top">
+                <h1 class="main-title">GitHub Pages Control Center</h1>
+                <div class="header-info">
+                    <span id="userInfo" class="header-user-info" style="display:none;"></span>
+                    <span id="repoCount" class="header-repo-count" style="display:none;"></span>
+                </div>
+            </div>
             <div class="auth-container">
                 <input type="password" 
                        id="tokenField" 
@@ -22,8 +28,10 @@
                     <label for="rememberToken" class="remember-label">Remember token (stored in browser)</label>
                 </div>
                 <button id="connectBtn" class="connect-button">Connect</button>
-                <button id="refreshBtn" class="refresh-button" style="display:none;">Refresh Data</button>
-                <button id="clearTokenBtn" class="clear-token-button" style="display:none;">Clear Saved Token</button>
+                <div class="button-group" style="display:none;" id="buttonGroup">
+                    <button id="refreshBtn" class="refresh-button">Refresh Data</button>
+                    <button id="clearTokenBtn" class="clear-token-button">Clear Saved Token</button>
+                </div>
             </div>
         </header>
 
